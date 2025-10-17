@@ -1,0 +1,207 @@
+import pygame
+import random
+import sys
+
+# --- Funções do Jogo ---
+
+
+def reiniciar_jogo():
+    """Reseta todas as variáveis para começar um novo jogo."""
+    global passaro_y, velocidade_passaro, canos, pontos, canos_para_pontuar, estado_jogo
+    passaro_y = 300
+    velocidade_passaro = 0
+    canos = []
+    canos_para_pontuar = []
+    pontos = 0
+    estado_jogo = "JOGANDO"  # Muda direto para JOGANDO ao reiniciar
+
+
+def mostrar_tela_inicio():
+    """Desenha a tela inicial do jogo com textos centralizados em duas linhas."""
+    tela.fill(AZUL_CEU)
+    texto_titulo = fonte_game_over.render("FLAPPY BIRD", True, BRANCO)
+    # Dividindo o texto de instrução em duas partes
+    texto_instrucao1 = fonte.render("Pressione ESPAÇO", True, BRANCO)
+    texto_instrucao2 = fonte.render("para começar", True, BRANCO)
+
+    # Centralizando cada linha de texto
+    titulo_rect = texto_titulo.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 - 100)
+    )
+    instrucao1_rect = texto_instrucao1.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 + 40)
+    )
+    instrucao2_rect = texto_instrucao2.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 + 80)
+    )
+
+    # Desenha um pássaro estático na tela inicial
+    pygame.draw.rect(
+        tela, AMARELO, (passaro_x, passaro_y, passaro_largura, passaro_altura)
+    )
+
+    # Desenha os textos na tela
+    tela.blit(texto_titulo, titulo_rect)
+    tela.blit(texto_instrucao1, instrucao1_rect)
+    tela.blit(texto_instrucao2, instrucao2_rect)
+    pygame.display.update()
+
+
+def mostrar_tela_game_over():
+    """Desenha a tela de 'Game Over' com textos centralizados em duas linhas."""
+    texto_game_over = fonte_game_over.render("GAME OVER", True, BRANCO)
+    texto_pontos_final = fonte.render(f"Pontuação: {int(pontos)}", True, BRANCO)
+    # Dividindo o texto de reinício em duas partes
+    texto_reiniciar1 = fonte.render("Pressione R", True, BRANCO)
+    texto_reiniciar2 = fonte.render("para reiniciar", True, BRANCO)
+
+    # Centralizando cada linha de texto
+    game_over_rect = texto_game_over.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 - 80)
+    )
+    pontos_rect = texto_pontos_final.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 - 20)
+    )
+    reiniciar1_rect = texto_reiniciar1.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 + 40)
+    )
+    reiniciar2_rect = texto_reiniciar2.get_rect(
+        center=(LARGURA_TELA / 2, ALTURA_TELA / 2 + 80)
+    )
+
+    # Desenha os textos na tela
+    tela.blit(texto_game_over, game_over_rect)
+    tela.blit(texto_pontos_final, pontos_rect)
+    tela.blit(texto_reiniciar1, reiniciar1_rect)
+    tela.blit(texto_reiniciar2, reiniciar2_rect)
+    pygame.display.update()
+
+
+def desenhar_objetos():
+    """Desenha todos os elementos na tela durante o jogo."""
+    tela.fill(AZUL_CEU)
+    passaro_rect = pygame.draw.rect(
+        tela, AMARELO, (passaro_x, passaro_y, passaro_largura, passaro_altura)
+    )
+    for cano in canos:
+        pygame.draw.rect(tela, VERDE, cano)
+    texto_pontos = fonte.render(f"Pontos: {int(pontos)}", True, BRANCO)
+    tela.blit(texto_pontos, (10, 10))
+    pygame.display.update()
+    return passaro_rect
+
+
+def mover_objetos():
+    """Atualiza a posição de todos os objetos móveis."""
+    global passaro_y, velocidade_passaro, ultimo_cano, pontos
+
+    velocidade_passaro += gravidade
+    passaro_y += velocidade_passaro
+
+    agora = pygame.time.get_ticks()
+    if agora - ultimo_cano > frequencia_cano:
+        altura_cano = random.randint(150, 450)
+        cano_baixo = pygame.Rect(
+            LARGURA_TELA, altura_cano, cano_largura, ALTURA_TELA - altura_cano
+        )
+        cano_cima = pygame.Rect(LARGURA_TELA, 0, cano_largura, altura_cano - cano_gap)
+        canos.append(cano_baixo)
+        canos.append(cano_cima)
+        canos_para_pontuar.append(cano_baixo)
+        ultimo_cano = agora
+
+    for cano in canos:
+        cano.x += velocidade_cano
+
+    for cano_ponto in list(canos_para_pontuar):
+        if passaro_x > cano_ponto.centerx:
+            pontos += 1
+            canos_para_pontuar.remove(cano_ponto)
+
+    canos[:] = [cano for cano in canos if cano.right > 0]
+
+
+def verificar_colisao(passaro_rect):
+    """Verifica se o pássaro colidiu com algo."""
+    for cano in canos:
+        if passaro_rect.colliderect(cano):
+            return True
+    if passaro_y > ALTURA_TELA - passaro_altura or passaro_y < 0:
+        return True
+    return False
+
+
+# --- Configurações Iniciais ---
+pygame.init()
+
+LARGURA_TELA = 400
+ALTURA_TELA = 600
+tela = pygame.display.set_mode((LARGURA_TELA, ALTURA_TELA))
+pygame.display.set_caption("Flappy Bird com Início")
+
+BRANCO = (255, 255, 255)
+AZUL_CEU = (135, 206, 235)
+VERDE = (0, 255, 0)
+AMARELO = (255, 255, 0)
+
+relogio = pygame.time.Clock()
+
+passaro_x = 50
+passaro_y = 300
+passaro_largura = 30
+passaro_altura = 30
+velocidade_passaro = 0
+gravidade = 0.5
+forca_pulo = -10
+
+cano_largura = 70
+cano_gap = 150
+velocidade_cano = -4
+frequencia_cano = 1500
+ultimo_cano = pygame.time.get_ticks() - frequencia_cano
+canos = []
+
+pontos = 0
+fonte = pygame.font.SysFont("Arial", 30, bold=True)
+fonte_game_over = pygame.font.SysFont("Arial", 50, bold=True)
+
+# --- Variáveis de Estado do Jogo ---
+estado_jogo = "INICIO"  # Pode ser 'INICIO', 'JOGANDO' ou 'GAME_OVER'
+canos_para_pontuar = []
+
+# --- Loop Principal do Jogo ---
+rodando = True
+while rodando:
+    relogio.tick(60)
+
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            rodando = False
+        if evento.type == pygame.KEYDOWN:
+            # Pressionar ESPAÇO
+            if evento.key == pygame.K_SPACE:
+                if estado_jogo == "JOGANDO":
+                    velocidade_passaro = forca_pulo
+                # Se estiver na tela de início, começa o jogo
+                elif estado_jogo == "INICIO":
+                    reiniciar_jogo()
+
+            # Pressionar R para reiniciar
+            if evento.key == pygame.K_r and estado_jogo == "GAME_OVER":
+                estado_jogo = "INICIO"  # Volta para a tela de início
+
+    # Lógica baseada no estado do jogo
+    if estado_jogo == "INICIO":
+        mostrar_tela_inicio()
+
+    elif estado_jogo == "JOGANDO":
+        mover_objetos()
+        passaro_retangulo = desenhar_objetos()
+        if verificar_colisao(passaro_retangulo):
+            estado_jogo = "GAME_OVER"
+
+    elif estado_jogo == "GAME_OVER":
+        mostrar_tela_game_over()
+
+pygame.quit()
+sys.exit()
