@@ -1,0 +1,77 @@
+# importando bibliotecas
+# gorjetas de restaurante
+# visualização de dados e gráficos
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# criação de dados
+# colunas com valores referente a cada variável
+dados_restaurante = {
+    "valor_total": [
+        30.50,
+        45.75,
+        105.30,
+        80.00,
+        25.00,
+        150.00,
+        55.20,
+        95.90,
+        68.40,
+    ],
+    "gorjeta": [3.50, 5.00, 10.00, 15.00, 4.00, 20.00, 5.50, 10.00, 7.50],
+    "dia": [
+        "Sábado",
+        "Sábado",
+        "Sábado",
+        "Domingo",
+        "Domingo",
+        "Sexta",
+        "Sexta",
+        "Quinta",
+        "Quinta",
+    ],
+    "periodo": [
+        "Jantar",
+        "Jantar",
+        "Jantar",
+        "Almoço",
+        "Almoço",
+        "Jantar",
+        "Jantar",
+        "Almoço",
+        "Jantar",
+    ],
+}
+# criando dataframe (pandas)
+df = pd.DataFrame(dados_restaurante)  # transforma em uma planilha organizada
+print("---- 1. Dados Brutos da Tabela ----")
+print(df)
+# analisando e agrupando os dados com pandas
+analise_por_periodo = (  # verficando apenas as duas colunas
+    df.groupby("periodo")[["valor_total", "gorjeta"]].sum().reset_index()
+)
+# reset_index(transforma o resultado do GROUPBY em um dataframe 'bonito')
+print("\n----- Dados Agrupados por Período ----")
+print(analise_por_periodo)
+# define estilo visual
+# mostrando gráfico, valor total por período
+sns.set_theme(style="whitegrid")
+plt.figure(figsize=(12, 6))  # cria 'uma tela em branco para o quadro'
+plt.subplot(1, 2, 1)  # significa a criação das linhas colunas e grades
+sns.barplot(data=analise_por_periodo, x="periodo", y="valor_total", palette="Reds_r")
+plt.title("Valor Total Gasto por Período")  # definir titulos
+plt.xlabel("Período do Dia")  # definir titulo eixo X
+plt.ylabel("Soma do Valor Total (R$)")  # definir titulo eixo Y
+# segundo gráfico - gorjetas
+plt.subplot(1, 2, 2)  # terá 1 linha, 2 colunas, 2° grafico
+sns.barplot(
+    data=analise_por_periodo, x="periodo", y="gorjeta", palette="Greens_r"
+)  # segundo grafico usando gorjeta para o eixo Y
+# adicionando os titulos como acima
+plt.title("Total de Gorjetas por Período")
+plt.xlabel("Período do Dia")
+plt.ylabel("Soma das Gorjetas")
+# finalização
+plt.tight_layout()  # ajusta automaticamente para q os titulos nao se sobreponham
+plt.show()  # exibição de janela com os gráficos
