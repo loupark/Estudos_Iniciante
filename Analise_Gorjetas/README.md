@@ -2,12 +2,6 @@
 
 Este projeto utiliza Python para analisar um conjunto de dados sobre gorjetas em um restaurante. O objetivo é comparar o comportamento de consumo e gorjetas entre os períodos de **Almoço** e **Jantar**, transformando dados brutos em gráficos claros e informativos.
 
-### Gráfico Gerado pelo Script:
-![Gráfico de Análise de Gorjetas](https://i.imgur.com/your-image-url.png)
-_**Dica:** Rode o script, salve a imagem do gráfico que aparece e substitua o link acima pelo seu para um README incrível!_
-
----
-
 ## 🚀 Tecnologias Utilizadas
 
 -   **🐍 Python**
