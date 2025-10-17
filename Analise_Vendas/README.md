@@ -4,12 +4,6 @@ Este projeto é um script completo em Python que realiza uma análise de ponta a
 
 ### Gráfico Gerado pelo Script:
 ![Gráfico de Análise de Vendas]
-![alt text](image.png)
-
-
-
-
-
 
 ---
 
