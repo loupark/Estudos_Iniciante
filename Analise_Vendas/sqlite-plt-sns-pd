@@ -1,0 +1,129 @@
+# sqlit3 matplotlib seaborn e pandas
+# importando ferramentas que serão utilizadas
+
+import sqlite3
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+print("Iniciando analise de vendas...")
+
+# preparando banco de dados
+conexao = sqlite3.connect("dados_vendas.db")  # conectando banco de dados
+cursor = conexao.cursor()  # o cursor é o que usamos para navegar pelo banco de dados
+cursor.execute(  # executa comando para criar tabela vendas1
+    """
+CREATE TABLE IF NOT EXISTS vendas1 (
+    id_venda INTEGER PRIMARY KEY AUTOINCREMENT,
+    data_venda DATE,
+    produto TEXT,
+    categoria TEXT,
+    valor_venda REAL
+)
+"""
+)
+cursor.execute("DELETE FROM vendas1")  # limpa tabela para evitar duplicados
+cursor.execute(  # aspas triplas serve para o comando sql ocupe várias linhas
+    """ 
+INSERT INTO vendas1 (data_venda, produto, categoria, valor_venda) VALUES
+    ('2024-01-15', 'Notebook Gamer X', 'Eletrônicos', 7500.00),
+    ('2024-02-10', 'Monitor Gamer 4K', 'Eletrônicos', 3200.00),
+    ('2024-03-05', 'Livro "Duna"', 'Livros', 80.00),
+    ('2024-03-25', 'Webcam Full HD', 'Eletrônicos', 650.00),
+    ('2024-04-12', 'Calça Jeans', 'Roupas', 250.00),
+    ('2024-05-30', 'Livro "A Revolução dos Bichos"', 'Livros', 45.00),
+    ('2024-06-18', 'Teclado Mecânico RGB', 'Eletrônicos', 450.00),
+    ('2024-07-22', 'Moletom', 'Roupas', 300.00),
+    ('2024-08-15', 'Mouse Gamer Pro', 'Eletrônicos', 350.00),
+    ('2024-09-09', 'Box "O Senhor dos Anéis"', 'Livros', 150.00),
+    ('2024-10-28', 'Jaqueta de Couro', 'Roupas', 700.00),
+    ('2024-11-25', 'Cadeira Gamer', 'Eletrônicos', 1800.00),
+    ('2024-12-20', 'Box "Harry Potter"', 'Livros', 200.00);
+"""  # inserimos dados a nossa tabela
+)
+conexao.commit()  # salva as mudanças que fizer no banco de dados
+print("Banco de Dados e Tabela criados com sucesso!")
+query = "SELECT * FROM vendas1"
+df_vendas = pd.read_sql_query(query, conexao)  # lendo resultado da conexao
+print("\n--- Primeiras 5 linhas Carregadas ---")
+print(df_vendas.head())
+# verificando os dados: colunas, valore nulos etc
+print("\n Informações DataFrame")
+df_vendas.info()
+# convertendo para formato de data real para fazer análise de tempo
+df_vendas["data_venda"] = pd.to_datetime(df_vendas["data_venda"])
+# cria nova coluna mes para fazer o agrupamento
+# .dt é o que acessa a coluna de data e hora
+df_vendas["mes"] = df_vendas["data_venda"].dt.month
+print("\n--- DataFrame após preparação (coluna mes adicionado) ---")
+print(df_vendas.head())
+# analisando dados
+# qual categoria mais vende em valor
+print("\n--- Vendas por Categoria ---")
+vendas_por_categoria = (
+    df_vendas.groupby("categoria")["valor_venda"].sum().sort_values(ascending=False)
+)
+print(vendas_por_categoria)
+# como as vendas se comportam ao longo do mes
+print("\n--- Vendas por Mes ---")
+vendas_por_mes = df_vendas.groupby("mes")["valor_venda"].sum()
+print(vendas_por_mes)
+# transformando em gráficos para entendimento
+print("\n Gerando Gráficos")
+# estilo visual de temas
+sns.set_theme(style="whitegrid")
+# cria uma grade para colocar os gráficos
+plt.figure(figsize=(16, 7))
+# grafico 1 vendas por categorias
+ax1 = plt.subplot(1, 2, 1)  # 1 linha, 2 colunas, posição 1
+sns.barplot(
+    x=vendas_por_categoria.index,
+    y=vendas_por_categoria.values,
+    palette="viridis",
+    ax=ax1,
+)
+ax1.set_title("Total de Vendas por Categoria", fontsize=16)
+ax1.set_xlabel("Categoria", fontsize=12)
+ax1.set_ylabel("Valor Total Vendido R$", fontsize=12)
+ax1.bar_label(ax1.containers[0], fmt="R$ %.2f")  # adiciona rotulos na barra
+# gráfico 2 vendas ao longo dos meses
+ax2 = plt.subplot(1, 2, 2)  # 1 linha, 2 colunas, posição 2
+sns.lineplot(
+    x=vendas_por_mes.index, y=vendas_por_mes.values, marker="o", color="crimson", ax=ax2
+)
+ax2.set_title("Evolução de Vendas durante o ano", fontsize=16)
+ax2.set_xlabel("Mês", fontsize=12)
+ax2.set_ylabel("Valor Total Vendido R$", fontsize=12)
+ax2.grid(True)  # força a aparição da grade
+# finalização dos gráficos
+plt.suptitle("Análise de Vendas Anual", fontsize=20, fontweight="bold")
+plt.tight_layout(rect=[0, 0, 1, 0.95])
+plt.show()
+# conclusão e insights
+print("\n--- Análise e Recomendações ---")
+insight1 = """
+Desempenho por Categoria:
+    categoria eletrônicos é a campeã de faturamento, representando a
+    maior parte de vendas.
+    Ropuas, aparece em segundo lugar, enquanto livros tem o menor volume
+    de vendas
+"""
+insight2 = """
+Vendas Situacionais:
+    o gráfico de evolução mensal mostra picos de vendas no início do ano
+    (jan-fev) e um pico muito significativo no final do ano (nov-dez)
+    isso sugere que por evento de férias, blackfriday e natal. Há uma queda
+    visível no meio do ano
+"""
+recomendado = """
+Recomendação:
+    Gestão de estoque: aumentar estoque de eletrônicos e roupas no final do ano
+    Estratégia: criar promoções com combos para categoria livro durantes
+    os meses de maio a agosto
+"""
+print(insight1)
+print(insight2)
+print(recomendado)
+# finalização
+conexao.close()
+print("\n Analise Concluida")
