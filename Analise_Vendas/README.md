@@ -3,8 +3,8 @@
 Este projeto é um script completo em Python que realiza uma análise de ponta a ponta sobre um conjunto de dados de vendas fictícias. O script executa todo o processo: cria um banco de dados, insere os dados, analisa as informações com Pandas e, por fim, gera visualizações gráficas para extrair insights.
 
 ### Gráfico Gerado pelo Script:
-![Gráfico de Análise de Vendas]
-(./assets/grafico.png)
+[Gráfico de Análise de Vendas]
+(assets/grafico.png)
 
 ---
 
